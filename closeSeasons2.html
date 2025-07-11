@@ -25,7 +25,6 @@
       justify-content: center;
       align-items: center;
       border-bottom: 2px solid #e3eafc;
-      /* background: #f9fafc; */
       position: sticky;
       top: 0;
       z-index: 10;
@@ -219,14 +218,24 @@
     }
     .detail-modal-center .close-btn {
       position: absolute;
-      right: 16px;
-      top: 14px;
+      right: 24px;
+      top: 22px;
       border: none;
       background: none;
-      font-size: 1.5rem;
+      font-size: 2.1rem;
       color: #888;
       cursor: pointer;
       z-index: 10;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: color 0.15s;
+    }
+    .detail-modal-center .close-btn:hover {
+      color: #1976d2;
     }
     .detail-modal-center h3 {
       display: none;
@@ -403,6 +412,7 @@
       font-size: 1.01rem;
       min-width: 80px;
       word-break: break-word;
+      position: relative;
     }
     .size-table th {
       background: #e3f2fd;
@@ -412,6 +422,27 @@
     .size-table td {
       background: #fff;
       color: #333;
+    }
+    .size-table .note-icon {
+      display: inline-block;
+      margin-left: 5px;
+      color: #1976d2;
+      font-size: 1.13em;
+      cursor: pointer;
+      vertical-align: middle;
+      border-radius: 50%;
+      text-align: center;
+      background: #e3eafc;
+      font-weight: bold;
+      transition: background 0.15s, color 0.15s;
+      border: none;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .size-table .note-icon:hover,
+    .size-table .note-icon:focus {
+      background: #1976d2;
+      color: #fff;
     }
     .size-table-desc {
       color: #666;
@@ -506,7 +537,6 @@
     </div>
     <div class="tab-content" id="tab-content-size" style="display:none;">
       <div class="size-table-section">
-        
         <table class="size-table">
           <thead>
             <tr>
@@ -556,7 +586,7 @@
       try {
         const response = await fetch('https://your-api-domain.com/api/closed-seasons');
         if (!response.ok) throw new Error('API Error');
-        return await response.json();        
+        return await response.json();
       } catch (e) {
         return [
           {"start":"01-16","end":"02-15","species":"대구","note":""},
@@ -594,14 +624,14 @@
     }
 
     async function fetchYearRoundClosedSpecies() {
-      try {        
+      try {
         const response = await fetch('https://your-api-domain.com/api/yearround-closed');
         if (!response.ok) throw new Error('API Error');
-        return await response.json();        
+        return await response.json();
       } catch (e) {
         return [
-          { "species": "외포란 꽃게", "note": "복부 외포란 연중 포획금지" },
-          { "species": "외포란 민꽃게", "note": "복부 외포란 연중 포획금지" },
+          { "species": "암컷 꽃게", "note": "복부 외포란 포획금지" },
+          { "species": "암컷 민꽃게", "note": "연중 포획금지" },
           { "species": "암컷 대게", "note": "연중 포획금지" },
           { "species": "암컷 붉은대게", "note": "연중 포획금지" },
           { "species": "대구", "note": "연중 포획금지" }
@@ -613,7 +643,7 @@
       try {
         const response = await fetch('https://your-api-domain.com/api/size-limits');
         if (!response.ok) throw new Error('API Error');
-        return await response.json();            
+        return await response.json();
       } catch (e) {
         return [
           { "species": "대구", "limit": "35cm 미만", "measure": "전장" },
@@ -722,7 +752,6 @@
         if (speciesArr.length > 0) {
           const speciesDiv = document.createElement('div');
           speciesDiv.className = 'species';
-
           let label = '';
           if (speciesArr.length === 1) {
             label = speciesArr[0];
@@ -730,7 +759,6 @@
             label = speciesArr.length + '종';
           }
           speciesDiv.textContent = label;
-          
           cell.appendChild(speciesDiv);
         }
         cell.onclick = () => showDetailModal(date);
@@ -739,18 +767,33 @@
       renderMonthClosedSpecies(year, month);
     }
 
-    function showDetailModal(dateOrName) {
+    // showDetailModal: type 인자 추가 (type === "size"면 금지체장 note, 아니면 기존 금어기 note)
+    function showDetailModal(target, type) {
       let content = '';
-      if (typeof dateOrName === "string") {
-        let note = closedSeasonNoteMap[dateOrName] || yearRoundNoteMap[dateOrName] || "";
+      if (type === "size") {
+        // 금지체장 표 note
+        const item = sizeLimits.find(i => i.species === target);
+        if (item && item.note) {
+          content = `
+            <div class="item">
+              <span class="species">${item.species}</span>
+              <span class="note">${item.note}</span>
+            </div>
+          `;
+        } else {
+          content = `<div class="no-data">상세 정보 없음</div>`;
+        }
+      } else if (typeof target === "string") {
+        // 기존 금어기/포획금지 note
+        let note = closedSeasonNoteMap[target] || yearRoundNoteMap[target] || "";
         let period = "";
-        let csItem = closedSeasons.find(s => s.species === dateOrName);
+        let csItem = closedSeasons.find(s => s.species === target);
         if (csItem) {
           period = `(${parseInt(csItem.start.slice(0,2),10)}월 ${parseInt(csItem.start.slice(3,5),10)}일 ~ ${parseInt(csItem.end.slice(0,2),10)}월 ${parseInt(csItem.end.slice(3,5),10)}일)`;
         }
         content = `
           <div class="item">
-            <span class="species">${dateOrName}</span>
+            <span class="species">${target}</span>
             ${period ? `<span class="period">${period}</span>` : ""}
             ${note ? `<span class="note">${note}</span>` : ""}
           </div>
@@ -759,7 +802,8 @@
           content = `<div class="no-data">상세 정보 없음</div>`;
         }
       } else {
-        const monthDay = ("0" + (dateOrName.getMonth() + 1)).slice(-2) + "-" + ("0" + dateOrName.getDate()).slice(-2);
+        // 달력 날짜 클릭 등 기존 로직
+        const monthDay = ("0" + (target.getMonth() + 1)).slice(-2) + "-" + ("0" + target.getDate()).slice(-2);
         const items = closedSeasons.filter(s => isInPeriod(monthDay, s.start, s.end));
         if (items.length === 0) {
           content = `<div class="no-data">금어기 없음</div>`;
@@ -840,11 +884,26 @@
       if (!tbody) return;
       tbody.innerHTML = '';
       sizeLimits.forEach(item => {
-        tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.species}</td><td>${item.limit}</td><td>${item.measure}</td>`;
+        const tr = document.createElement('tr');
+        const hasNote = !!item.note;
+        tr.innerHTML =
+          `<td>${item.species}</td>
+           <td>${item.limit}
+             ${hasNote
+                ? `<button class="note-icon" title="비고 보기" tabindex="0" onclick="showNotePopup(event, '${item.species.replace(/'/g,"\\'")}')">&#9432;</button>`
+                : ''}
+           </td>
+           <td>${item.measure}</td>`;
         tbody.appendChild(tr);
       });
     }
+
+    // showNotePopup에서 type을 "size"로 전달
+    function showNotePopup(event, species) {
+      event.stopPropagation();
+      showDetailModal(species, "size");
+    }
+    window.showNotePopup = showNotePopup;
 
     async function loadData() {
       closedSeasons = await fetchClosedSeasons();
