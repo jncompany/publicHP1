@@ -717,9 +717,15 @@
         if (speciesArr.length > 0) {
           const speciesDiv = document.createElement('div');
           speciesDiv.className = 'species';
-          speciesDiv.textContent =
-            speciesArr.slice(0,2).join(", ") +
-            (speciesArr.length > 2 ? " 외" : "");
+
+          let label = '';
+          if (speciesArr.length === 1) {
+            label = speciesArr[0];
+          } else if (speciesArr.length > 1) {
+            label = speciesArr.length + '종';
+          }
+          speciesDiv.textContent = label;
+          
           cell.appendChild(speciesDiv);
         }
         cell.onclick = () => showDetailModal(date);
