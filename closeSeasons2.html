@@ -584,7 +584,7 @@
 
     async function fetchClosedSeasons() {
       try {
-        const response = await fetch('https://your-api-domain.com/api/closed-seasons');
+        const response = await fetch('https://modoobada.com/getClosedSeasons');
         if (!response.ok) throw new Error('API Error');
         return await response.json();
       } catch (e) {
@@ -625,7 +625,7 @@
 
     async function fetchYearRoundClosedSpecies() {
       try {
-        const response = await fetch('https://your-api-domain.com/api/yearround-closed');
+        const response = await fetch('https://modoobada.com/getYearRoundClosedSpecies');
         if (!response.ok) throw new Error('API Error');
         return await response.json();
       } catch (e) {
@@ -641,7 +641,7 @@
 
     async function fetchSizeLimits() {
       try {
-        const response = await fetch('https://your-api-domain.com/api/size-limits');
+        const response = await fetch('https://modoobada.com/getSizeLimits');
         if (!response.ok) throw new Error('API Error');
         return await response.json();
       } catch (e) {
