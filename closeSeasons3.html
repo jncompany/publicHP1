@@ -305,17 +305,40 @@
       from { opacity: 1; }
       to { opacity: 0; }
     }
-    .modal-handle-area {
+    .modal-top-bar {
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
       padding: 10px 0 8px;
-      cursor: grab;
     }
     .modal-handle {
       width: 36px;
       height: 4px;
       background: #ddd;
       border-radius: 2px;
-      margin: 0 auto;
+    }
+    .modal-close-btn {
+      position: absolute;
+      right: 0;
+      top: 4px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: none;
+      font-size: 1.4rem;
+      color: #aaa;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.15s, color 0.15s;
+    }
+    .modal-close-btn:active {
+      background: #f0f0f0;
+      color: #666;
     }
     .modal-scroll {
       overflow-y: auto;
@@ -788,7 +811,7 @@
       root.innerHTML =
         '<div class="modal-overlay" onclick="closeDetailModal(event)">' +
           '<div class="modal-sheet" onclick="event.stopPropagation()">' +
-            '<div class="modal-handle-area"><div class="modal-handle"></div></div>' +
+            '<div class="modal-top-bar"><div class="modal-handle"></div><button class="modal-close-btn" onclick="closeDetailModal(event)">&times;</button></div>' +
             '<div class="modal-scroll">' + content + '</div>' +
           '</div>' +
         '</div>';
@@ -797,7 +820,7 @@
 
     function initSheetDrag() {
       var sheet = document.querySelector('.modal-sheet');
-      var handle = document.querySelector('.modal-handle-area');
+      var handle = document.querySelector('.modal-top-bar');
       var scroll = document.querySelector('.modal-scroll');
       if (!sheet || !handle) return;
 
