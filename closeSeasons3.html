@@ -305,13 +305,17 @@
       from { opacity: 1; }
       to { opacity: 0; }
     }
+    .modal-handle-area {
+      flex-shrink: 0;
+      padding: 10px 0 8px;
+      cursor: grab;
+    }
     .modal-handle {
       width: 36px;
       height: 4px;
       background: #ddd;
       border-radius: 2px;
-      margin: 12px auto 16px;
-      flex-shrink: 0;
+      margin: 0 auto;
     }
     .modal-scroll {
       overflow-y: auto;
@@ -784,7 +788,7 @@
       root.innerHTML =
         '<div class="modal-overlay" onclick="closeDetailModal(event)">' +
           '<div class="modal-sheet" onclick="event.stopPropagation()">' +
-            '<div class="modal-handle"></div>' +
+            '<div class="modal-handle-area"><div class="modal-handle"></div></div>' +
             '<div class="modal-scroll">' + content + '</div>' +
           '</div>' +
         '</div>';
@@ -793,33 +797,61 @@
 
     function initSheetDrag() {
       var sheet = document.querySelector('.modal-sheet');
-      if (!sheet) return;
-      var startY = 0, currentY = 0, dragging = false;
+      var handle = document.querySelector('.modal-handle-area');
+      var scroll = document.querySelector('.modal-scroll');
+      if (!sheet || !handle) return;
 
-      sheet.addEventListener('touchstart', function(e) {
-        startY = e.touches[0].clientY;
+      var startY = 0, currentY = 0, dragging = false, fromHandle = false;
+
+      function onStart(e) {
+        var touch = e.touches[0];
+        startY = touch.clientY;
         currentY = 0;
-        dragging = true;
-        sheet.style.transition = 'none';
-      }, { passive: true });
+        fromHandle = handle.contains(e.target);
+        if (fromHandle) {
+          dragging = true;
+          sheet.style.transition = 'none';
+        }
+      }
 
-      sheet.addEventListener('touchmove', function(e) {
+      function onMove(e) {
+        var touch = e.touches[0];
+        var dy = touch.clientY - startY;
+
+        // 핸들이 아닌 경우: 스크롤이 최상단이고 아래로 당길 때만 드래그 시작
+        if (!fromHandle && !dragging) {
+          if (scroll && scroll.scrollTop <= 0 && dy > 10) {
+            dragging = true;
+            startY = touch.clientY;
+            dy = 0;
+            sheet.style.transition = 'none';
+          } else {
+            return;
+          }
+        }
+
         if (!dragging) return;
-        currentY = e.touches[0].clientY - startY;
-        if (currentY < 0) currentY = 0;
+        currentY = dy < 0 ? 0 : dy;
         sheet.style.transform = 'translateY(' + currentY + 'px)';
-      }, { passive: true });
+        if (currentY > 0) e.preventDefault();
+      }
 
-      sheet.addEventListener('touchend', function() {
+      function onEnd() {
         if (!dragging) return;
         dragging = false;
+        fromHandle = false;
         sheet.style.transition = 'transform 0.2s ease';
-        if (currentY > 80) {
+        if (currentY > 60) {
           closeDetailModalAnimated();
         } else {
           sheet.style.transform = 'translateY(0)';
         }
-      });
+      }
+
+      sheet.addEventListener('touchstart', onStart, { passive: true });
+      sheet.addEventListener('touchmove', onMove, { passive: false });
+      sheet.addEventListener('touchend', onEnd);
+
     }
 
     function closeDetailModalAnimated() {
