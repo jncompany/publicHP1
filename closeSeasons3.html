@@ -393,7 +393,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      cursor: default;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .size-card:active {
+      background: #f5f5f5;
     }
     .size-card-left {
       display: flex;
@@ -770,12 +774,36 @@
       renderMonthClosedSpecies(year, month);
     }
 
+    var measureDescMap = {
+      '전장': { name: '전장(全長)', desc: '주둥이 끝에서 꼬리지느러미 끝까지의 길이' },
+      '체장': { name: '체장(體長)', desc: '주둥이 끝에서 꼬리자루의 끝까지의 길이' },
+      '체반폭': { name: '체반폭(體板幅)', desc: '양쪽 가슴지느러미 기부 사이의 가장 넓은 거리' },
+      '항문장': { name: '항문장(肛門長)', desc: '주둥이 끝에서 항문까지의 길이' },
+      '각장': { name: '각장(殼長)', desc: '패류 껍데기의 가장 긴 부분의 직선 거리' },
+      '각고': { name: '각고(殼高)', desc: '패류 껍데기의 가장 높은 부분의 직선 거리' },
+      '두흉갑장': { name: '두흉갑장(頭胸甲長)', desc: '갑각류 머리·가슴 등껍질의 앞끝에서 뒤끝까지 직선 거리' },
+      '중량': { name: '중량', desc: '어류 또는 패류의 전체 무게' },
+      '외투장': { name: '외투장(外套長)', desc: '오징어류 몸통(외투막)의 길이' }
+    };
+
     function showDetailModal(target, type) {
       let content = '';
       if (type === "size") {
         const item = sizeLimits.find(i => i.species === target);
-        if (item && item.note) {
-          content = '<div class="modal-item"><span class="modal-species">' + item.species + '</span><div class="modal-note">' + item.note + '</div></div>';
+        if (item) {
+          var mDesc = measureDescMap[item.measure];
+          content = '<div class="modal-item">' +
+            '<span class="modal-species">' + item.species + '</span>' +
+            '<span class="modal-period">' + item.limit + '</span>' +
+            (item.note ? '<div class="modal-note">' + item.note + '</div>' : '') +
+            '</div>';
+          if (mDesc) {
+            content += '<div class="modal-item">' +
+              '<div style="font-size:0.82rem;color:#999;font-weight:600;margin-bottom:4px;">계측 기준</div>' +
+              '<span class="modal-species" style="font-size:0.95rem;">' + mDesc.name + '</span>' +
+              '<div class="modal-note">' + mDesc.desc + '</div>' +
+              '</div>';
+          }
         } else {
           content = '<div class="modal-empty">상세 정보 없음</div>';
         }
@@ -942,6 +970,7 @@
         card.innerHTML =
           '<div class="size-card-left"><span class="size-card-species">' + item.species + '</span>' + noteHtml + '</div>' +
           '<div class="size-card-right"><div class="size-card-limit">' + item.limit + '</div><div class="size-card-measure">' + item.measure + '</div></div>';
+        card.onclick = function() { showDetailModal(item.species, 'size'); };
         listDiv.appendChild(card);
       });
     }
