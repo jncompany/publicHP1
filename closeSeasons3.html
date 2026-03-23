@@ -284,10 +284,26 @@
       max-height: 70vh;
       display: flex;
       flex-direction: column;
+      touch-action: none;
+      will-change: transform;
+    }
+    .modal-sheet.closing {
+      animation: slidedown 0.2s ease-in forwards;
+    }
+    .modal-overlay.fading {
+      animation: fadeout 0.2s ease-in forwards;
     }
     @keyframes slideup {
       from { transform: translateY(100%); }
       to { transform: translateY(0); }
+    }
+    @keyframes slidedown {
+      from { transform: translateY(0); }
+      to { transform: translateY(100%); }
+    }
+    @keyframes fadeout {
+      from { opacity: 1; }
+      to { opacity: 0; }
     }
     .modal-handle {
       width: 36px;
@@ -772,11 +788,57 @@
             '<div class="modal-scroll">' + content + '</div>' +
           '</div>' +
         '</div>';
+      initSheetDrag();
+    }
+
+    function initSheetDrag() {
+      var sheet = document.querySelector('.modal-sheet');
+      if (!sheet) return;
+      var startY = 0, currentY = 0, dragging = false;
+
+      sheet.addEventListener('touchstart', function(e) {
+        startY = e.touches[0].clientY;
+        currentY = 0;
+        dragging = true;
+        sheet.style.transition = 'none';
+      }, { passive: true });
+
+      sheet.addEventListener('touchmove', function(e) {
+        if (!dragging) return;
+        currentY = e.touches[0].clientY - startY;
+        if (currentY < 0) currentY = 0;
+        sheet.style.transform = 'translateY(' + currentY + 'px)';
+      }, { passive: true });
+
+      sheet.addEventListener('touchend', function() {
+        if (!dragging) return;
+        dragging = false;
+        sheet.style.transition = 'transform 0.2s ease';
+        if (currentY > 80) {
+          closeDetailModalAnimated();
+        } else {
+          sheet.style.transform = 'translateY(0)';
+        }
+      });
+    }
+
+    function closeDetailModalAnimated() {
+      var overlay = document.querySelector('.modal-overlay');
+      var sheet = document.querySelector('.modal-sheet');
+      if (!sheet || !overlay) {
+        document.getElementById('detail-modal-root').innerHTML = '';
+        return;
+      }
+      sheet.classList.add('closing');
+      overlay.classList.add('fading');
+      setTimeout(function() {
+        document.getElementById('detail-modal-root').innerHTML = '';
+      }, 200);
     }
 
     function closeDetailModal(event) {
-      document.getElementById('detail-modal-root').innerHTML = '';
       if (event) event.stopPropagation();
+      closeDetailModalAnimated();
     }
 
     function getMonthClosedSpecies(year, month, closedSeasons) {
