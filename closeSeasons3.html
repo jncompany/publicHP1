@@ -970,7 +970,20 @@
         card.innerHTML =
           '<div class="size-card-left"><span class="size-card-species">' + item.species + '</span>' + noteHtml + '</div>' +
           '<div class="size-card-right"><div class="size-card-limit">' + item.limit + '</div><div class="size-card-measure">' + item.measure + '</div></div>';
-        card.onclick = function() { showDetailModal(item.species, 'size'); };
+        (function(species) {
+          var touchStartY = 0;
+          card.addEventListener('touchstart', function(e) {
+            touchStartY = e.touches[0].clientY;
+          }, { passive: true });
+          card.addEventListener('touchend', function(e) {
+            var dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+            if (dy < 10) {
+              e.preventDefault();
+              showDetailModal(species, 'size');
+            }
+          });
+          card.onclick = function() { showDetailModal(species, 'size'); };
+        })(item.species);
         listDiv.appendChild(card);
       });
     }
